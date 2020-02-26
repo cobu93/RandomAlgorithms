@@ -1,2 +1,2 @@
-# RandomAlgorithms
-Random algorithms CIC course 
+# Random Algorithms
+Random algorithms CIC course.
