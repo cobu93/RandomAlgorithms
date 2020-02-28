@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from utils import plot_coupon_collector_results
+from utils import plot_coupon_collector_results, plot_coupon_collector_probability
 import time
 import argparse
 
@@ -22,7 +22,7 @@ evaluation_step = args.step
 
 start = time.time()
 
-coupons_history = range(0, n_coupons + evaluation_step - 1, evaluation_step)
+coupons_history = [step for step in range(evaluation_step, n_coupons + evaluation_step - 1, evaluation_step)]
 
 boxes_history = []
 
@@ -57,10 +57,34 @@ end = time.time()
 
 print('Python script:[Coupons:{}][Experiments:{}][Step:{}][Time:{:.5f}]'.format(n_coupons, n_repetitions, evaluation_step, end - start))
 
+boxes_history = np.array(boxes_history)
 
+# Mean calculation
 mean_history = np.mean(boxes_history, axis=0)
+
+# Standard deviation calculation
 error_history = np.std(boxes_history, axis=0)
+
+# Expected time
 expected_history = [coupons * math.log(coupons + 1e-15) for coupons in coupons_history]
+
+
+probability_history = {}
+
+# Factors compared in tests 
+linear_factors = [factor for factor in range(-3, 7, 1)]
+
+# Count times that execution steps were lower than expected and calculates the probability
+for idx, coupons in enumerate(coupons_history):
+  execution_probabilities = [ ( boxes_history[:,idx] <= coupons * (math.log(coupons) + factor) ).sum() / n_repetitions for factor in linear_factors]
+  probability_history[coupons] = execution_probabilities
+
+figure_prob = plot_coupon_collector_probability(
+    factors=linear_factors,
+    probabilities=probability_history
+)
+
+figure_prob.savefig('python_probability_results.png')
 
 figure = plot_coupon_collector_results(
     coupons=coupons_history, 

@@ -4,12 +4,13 @@ n_coupons=$1
 n_repetitions=$2
 evaluation_step=$3
 
-declare -A boxes_history
+declare expected_steps
+declare real_steps
+linear_factors=($(seq -3 1 7))
 
 for ((reps=0; reps<$n_repetitions; reps++))
-  do
-
-  for ((i=0; i<$n_coupons + $evaluation_step - 1; i+=$evaluation_step))
+  do  
+  for ((i=$evaluation_step; i<$n_coupons + $evaluation_step - 1; i+=$evaluation_step))
     do
 
     declare rep_boxes_history
@@ -38,6 +39,27 @@ for ((reps=0; reps<$n_repetitions; reps++))
       done
 
     rep_boxes_history[$i]=$boxes
+
+
+    if [ $reps -eq 0 ]
+      then
+
+      for factor in $linear_factors
+        do
+        expected_steps[$i"_"$factor] = $(('$i*(l($count_step)+$factor)' | bc -l))
+        real_steps[$i"_"$factor] = 0
+        done
+      fi
+
+    for factor in $linear_factors
+      do
+        if [$boxes < ${expected_steps[i"_"factor]} ]
+          then
+            real_steps[$i"_"$factor] = $((${real_steps[i_factor]} + 1))
+          fi
+      done
+
+
     done    
 
     if [ $reps -eq 0 ]
@@ -47,3 +69,6 @@ for ((reps=0; reps<$n_repetitions; reps++))
 
     echo "${rep_boxes_history[*]};"
   done
+
+echo ":${expected_steps[*]}"
+echo ":${real_steps[*]}"
