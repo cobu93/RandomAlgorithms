@@ -1,5 +1,5 @@
 import numpy as np
-from utils import plot_coupon_collector_results
+from utils import plot_coupon_collector_results, plot_coupon_collector_probability
 import subprocess
 import re
 import math
@@ -31,11 +31,27 @@ print('Python script:[Coupons:{}][Experiments:{}][Step:{}][Time:{:.5f}]'.format(
 values = result.stdout.decode('utf-8').split(':')
 
 coupons_history = np.fromstring(values[0], dtype=int, sep=' ')
-boxes_history = np.asarray(np.matrix(';'.join((values[1].split(';')[:-1]))))
+linear_factors = np.fromstring(values[1], dtype=int, sep=' ')
+boxes_history = np.asarray(np.matrix(';'.join((values[2].split(';')[:-1]))))
+probabilities = np.fromstring(values[3], dtype=float, sep=' ') / boxes_history.shape[0]
+
+
+probability_history = {}
+for idx, coupons in enumerate(coupons_history):
+  probability_history[coupons] = probabilities[idx * linear_factors.shape[0]: (idx + 1) * linear_factors.shape[0]]
+
+
 
 mean_history = np.mean(boxes_history, axis=0)
 error_history = np.squeeze(np.std(boxes_history, axis=0))
 expected_history = [coupons * math.log(coupons + 1e-15) for coupons in coupons_history]
+
+figure_prob = plot_coupon_collector_probability(
+    factors=linear_factors,
+    probabilities=probability_history
+)
+
+figure_prob.savefig('bash_probability_results.png')
 
 figure = plot_coupon_collector_results(
     coupons=coupons_history, 

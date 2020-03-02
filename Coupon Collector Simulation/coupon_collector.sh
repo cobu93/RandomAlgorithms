@@ -7,6 +7,7 @@ evaluation_step=$3
 declare expected_steps
 declare real_steps
 linear_factors=($(seq -3 1 7))
+count_expected_steps=0
 
 for ((reps=0; reps<$n_repetitions; reps++))
   do  
@@ -44,19 +45,27 @@ for ((reps=0; reps<$n_repetitions; reps++))
     if [ $reps -eq 0 ]
       then
 
-      for factor in $linear_factors
+      # 5 steps, all factors, 10 steps. all factors and so on
+
+      for factor in ${linear_factors[*]}
         do
-        expected_steps[$i"_"$factor] = $(('$i*(l($count_step)+$factor)' | bc -l))
-        real_steps[$i"_"$factor] = 0
+        expected_steps[$count_expected_steps]=$(echo "$i*(l($i)+$factor)" | bc -l)
+        real_steps[$count_expected_steps]=0
+        count_expected_steps=$(($count_expected_steps + 1))
         done
       fi
 
-    for factor in $linear_factors
+    start_index=$((($i / $evaluation_step - 1) * ${#linear_factors[@]}))
+    current_factor=0
+    for factor in ${linear_factors[*]}
       do
-        if [$boxes < ${expected_steps[i"_"factor]} ]
+        index=$(($start_index + $current_factor))
+        var="expected_steps[$index]"
+        if [ $(echo "$boxes < ${expected_steps[$index]}" | bc) -ne 0 ]
           then
-            real_steps[$i"_"$factor] = $((${real_steps[i_factor]} + 1))
+            real_steps[$index]=$((${real_steps[start_index + current_factor]} + 1))
           fi
+        current_factor=$(($current_factor + 1))
       done
 
 
@@ -65,10 +74,10 @@ for ((reps=0; reps<$n_repetitions; reps++))
     if [ $reps -eq 0 ]
       then
       echo "${!rep_boxes_history[*]}:"
+      echo "${linear_factors[*]}:"
       fi
 
     echo "${rep_boxes_history[*]};"
   done
 
-echo ":${expected_steps[*]}"
 echo ":${real_steps[*]}"

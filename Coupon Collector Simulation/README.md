@@ -35,16 +35,21 @@ For this experiment, the next parameters were supplied:
 
 ### Python script results
 
-**Running time**: *1.60189* seconds.
+**Running time**: *5.27455* seconds.
 
 ![image info](./python_results.png)
+
+![image info](./python_probability_results.png)
 
 
 ### Bash script results
 
-**Running time**: *100.72148* seconds.
+**Running time**: *84.82690* seconds.
 
 ![image info](./bash_results.png)
+
+
+![image info](./bash_probability_results.png)
 
 
 
