@@ -1,29 +1,35 @@
-import numpy as np
-import argparse
-import time 
-import math
 
+r_select <- function(array, position){
+    splitter = sample(0:length(array), 1, replace=True)
 
-def r_select(array, position):
-    splitter = np.random.randint(0, len(array), size=1)[0]
+    positive_part <- c()
+    negative_part <- c()
 
-    positive_part = []
-    negative_part = []
+    index <- 0
 
-    for index, element in enumerate(array):
-        if element <= array[splitter] and index != splitter:
-            negative_part.append(element)
-        elif element > array[splitter]:
-            positive_part.append(element)
+    for(element in array){
+        if(element <= array[splitter] and index != splitter){
+            negative_part <- c(negative_part, element)
+        }
+        else if(element > array[splitter]){
+            positive_part <- c(positive_part, element)
+        }
 
-    if len(negative_part) == position - 1:
-        return array[splitter]
-    elif len(negative_part) >= position:
-        return r_select(negative_part, position)
-    else:
-        return r_select(positive_part, position - 1 - len(negative_part))
+        if(length(negative_part) == position - 1){
+            return array[splitter]
+        }
+        else if(length(negative_part) >= position){
+            return r_select(negative_part, position)
+        }
+        else{
+            return r_select(positive_part, position - 1 - length(negative_part))
+        }
 
-def r_median(array):
+        index <- index + 1
+    }
+}
+
+r_median <- function(array){
     n = len(array)
     r_subset = np.random.choice(array, size=math.ceil(n ** 0.75))
     r_subset = np.sort(r_subset)
@@ -54,7 +60,7 @@ def r_median(array):
         return None, 1.0
 
     return np.sort(C)[math.floor(n / 2) - l_d], n ** -0.25 
-
+}
 
 parser = argparse.ArgumentParser(description='Get median of random array of integers.')
 parser.add_argument('length', type=int, help='Array length.')
