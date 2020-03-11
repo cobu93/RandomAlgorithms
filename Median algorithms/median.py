@@ -53,7 +53,7 @@ def r_median(array):
     if len(C) > 4 * (n ** 0.75):
         return None, 1.0
 
-    return np.sort(C)[math.floor(n / 2) - l_d], n ** -0.25 
+    return np.sort(C)[math.floor(n / 2) - l_d - 1], n ** -0.25 
 
 
 parser = argparse.ArgumentParser(description='Get median of random array of integers.')
@@ -87,9 +87,8 @@ rm_end_time = time.time()
 
 
 lower_median = math.floor((random_array.shape[0] - 1)/ 2)
-upper_median = math.ceil((random_array.shape[0] - 1) / 2)
-real_medians = np.sort(random_array)[[lower_median, upper_median]]
+real_medians = np.sort(random_array)[lower_median]
 
-print('Real medians:{}'.format(real_medians))
+print('Real median:{}'.format(real_medians))
 print('R-Select median:{}    Elapsed time:{} seconds'.format(r_select_median, rs_end_time - rs_start_time))
 print('R-Median median:{}    Probability:{}    Elapsed time:{} seconds'.format(r_m_median, 1 - r_median_prob, rm_end_time - rm_start_time))

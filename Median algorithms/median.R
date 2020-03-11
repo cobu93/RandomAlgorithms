@@ -1,3 +1,7 @@
+#!/usr/bin/env Rscript
+
+library('optparse')
+
 
 r_select <- function(array, position){
     splitter = sample(1:length(array), 1, replace=TRUE)
@@ -5,7 +9,7 @@ r_select <- function(array, position){
     positive_part <- c()
     negative_part <- c()
 
-    index <- 0
+    index <- 1
 
     for(element in array){
         
@@ -35,9 +39,9 @@ r_median <- function(array){
     r_subset <- sample(array, ceiling(n ** 0.75))
     r_subset <- sort(r_subset)
 
-    d_pos <- floor(0.5 * (n ** 0.75) - sqrt(n)) - 1
-    d_pos = if(d_pos < 0) 0 else d_pos
-    u_pos = ceiling(0.5 * (n ** 0.75) + sqrt(n)) - 1
+    d_pos <- floor(0.5 * (n ** 0.75) - sqrt(n))
+    d_pos <- if(d_pos < 1) 1 else d_pos
+    u_pos <- ceiling(0.5 * (n ** 0.75) + sqrt(n))
 
     d <- r_subset[d_pos]
     u <- r_subset[u_pos]
@@ -47,7 +51,7 @@ r_median <- function(array){
     l_u <- 0
 
     for(element in array){
-        if(element >= d && element <= u){
+        if((element >= d) & (element <= u)){
             C <- c(C, element)
         }
 
@@ -59,65 +63,58 @@ r_median <- function(array){
         }
     }
 
-    if(l_d > n / 2 || l_u > n / 2){
-        return(None, 1.0)
+    if((l_d > n / 2) | (l_u > n / 2)){
+        return(c(NULL, 1.0))
     }
 
     if(length(C) > 4 * (n ** 0.75)){
-        return(None, 1.0)
+        return(c(None, 1.0))
     }
 
-    return(sort(C)[floor(n / 2) - l_d], n ** -0.25) 
+    return(c(sort(C)[floor(n / 2) - l_d], n ** -0.25))
 }
 
+option_list = list(
+    make_option(c('--length', '-l'), type='integer', default=NA, help='Array length.'),
+    make_option(c('--max', '-m'), type='integer', default=NA, help='Max value in array.'),
+    make_option(c('--reps', '-r'), type='integer', default=5, help='Repetitions for r_median algorithm.')
+); 
+ 
+parser = OptionParser(option_list=option_list);
+args = parse_args(parser);
 
-#parser = argparse.ArgumentParser(description='Get median of random array of integers.')
-#parser.add_argument('length', type=int, help='Array length.')
-#parser.add_argument('max', type=int, help='Max value in array.')
-#parser.add_argument('-r', '--reps', required=False, type=int, default=5, help='Repetitions for r_median algorithm.')
-#
-#args = parser.parse_args()
-#
-#
-#random_array = np.random.randint(1, args.max + 1, size=args.length)
-#
-#rs_start_time = time.time()
-#r_select_median = r_select(random_array.tolist(), math.ceil(len(random_array) / 2))
-#rs_end_time = time.time()
-#
-#
-#rm_start_time = time.time()
-#r_m_median = None
-#r_median_prob = 1.0
-#for i in range(0, args.reps):
-#    i_r_median, i_r_median_prob = r_median(random_array)
-#    if i_r_median is not None:
-#        r_median_prob *= i_r_median_prob
-#        if r_m_median is None:
-#            r_m_median = i_r_median
-#        elif r_m_median != i_r_median:
-#            raise Exception('Medians were distinct! ({}, {})'.format(r_m_median, i_r_median)) 
-#
-#rm_end_time = time.time()
-#
-#
-#lower_median = math.floor((random_array.shape[0] - 1)/ 2)
-#upper_median = math.ceil((random_array.shape[0] - 1) / 2)
-#real_medians = np.sort(random_array)[[lower_median, upper_median]]
-#
-#print('Real medians:{}'.format(real_medians))
-#print('R-Select median:{}    Elapsed time:{} seconds'.format(r_select_median, rs_end_time - rs_start_time))
-#print('R-Median median:{}    Probability:{}    Elapsed time:{} seconds'.format(r_m_median, 1 - r_median_prob, rm_end_time - rm_start_time))
+if (is.na(args$length) | is.na(args$max)) {
+    stop('length and max must be provided')
+}
 
+random_array <- sample(1:args$max, args$length, replace=TRUE)
 
-random_array <- sample(1:100, 10, replace=TRUE)
+rs_start_time = Sys.time()
+r_select_median <- r_select(random_array, ceiling(length(random_array) / 2))
+rs_end_time = Sys.time()
 
+rm_start_time = Sys.time()
+r_m_median <- NULL
+r_median_prob <- 1.0
+for(i in 1:args$reps){
+    r_median_results <- r_median(random_array)
+    i_r_median <- r_median_results[1]
+    i_r_median_prob <- r_median_results[2]
+    if(!is.null(i_r_median)){
+        r_median_prob <- r_median_prob * i_r_median_prob
+        if(is.null(r_m_median)){
+            r_m_median <- i_r_median
+        }
+        else if(r_m_median != i_r_median){
+            stop('Medians were distinct!') 
+        }
+    }
+}
+rm_end_time = Sys.time()
 
 lower_median <- floor((length(random_array) - 1) / 2) + 1
-upper_median <- ceiling((length(random_array) - 1) / 2) + 1
-real_medians <- sort(random_array)[c(lower_median, upper_median)]
+real_medians <- sort(random_array)[lower_median]
 
-r_select_median <- r_select(random_array, ceiling(length(random_array) / 2))
-print(sort(random_array))
-print(real_medians)
-print(r_select_median)
+cat('Real median:', real_medians, '\n', sep=' ')
+cat('R-Select median:', r_select_median, '\tElapsed time:', (rs_end_time - rs_start_time), 'seconds\n', sep=' ')
+cat('R-Median median:', r_m_median, '\tProbability:', 1 - r_median_prob, '\tElapsed time:', (rm_end_time - rm_start_time), 'seconds\n', sep=' ')
